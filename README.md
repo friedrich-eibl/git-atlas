@@ -22,5 +22,11 @@ It works **without authentication** for public repositories.
 
 
 ## Example (Official "git" repository)
-(For interactive version go to: [Git-Atlas](https://gitatlas.dev)
-![graph1](https://github.com/user-attachments/assets/5357841d-a216-458a-8b32-45b9f181d161)
+(For interactive version go to: [Git-Atlas](https://gitatlas.dev))
+<p align="center">
+  <img
+    src="https://github.com/user-attachments/assets/5357841d-a216-458a-8b32-45b9f181d161"
+    width="600"
+    alt="GitAtlas repository graph"
+  />
+</p>
