@@ -1,513 +1,193 @@
-<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8" />
-<title>GitAtlas</title>
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<script
-  defer
-  src="https://static.cloudflareinsights.com/beacon.min.js"
-  data-cf-beacon='{"token": "YOUR_TOKEN"}'>
-</script>
-
-<style>
-:root{
-  --bg:#ffffff;
-  --fg:#24292f;
-  --muted:#57606a;
-  --border:#d0d7de;
-  --panel:#f6f8fa;
-  --canvas:#ffffff;
-  --accent:#24292f;
-}
-
-*{ box-sizing:border-box; }
-
-html, body{ height:100%; }
-
-body{
-  margin:0;
-  font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
-  background: var(--bg);
-  color: var(--fg);
-}
-
-/* grid background (behind everything) */
-body::before{
-  content:"";
-  position:fixed;
-  inset:0;
-  z-index:0;
-  pointer-events:none;
-  background:
-    linear-gradient(#eef2f6 1px, transparent 1px),
-    linear-gradient(90deg, #eef2f6 1px, transparent 1px);
-  background-size:48px 48px;
-  opacity:.45;
-}
-
-/* app layer */
-.app{
-  position:relative;
-  z-index:1;
-}
-
-/* ---------- header ---------- */
-header{
-  display:flex;
-  justify-content:space-between;
-  align-items:baseline;
-  padding:14px 20px;
-  border-bottom:1px solid var(--border);
-  background:#fff;
-}
-
-h1{
-  margin:0;
-  font-size:16px;
-  letter-spacing:.08em;
-  text-transform:uppercase;
-}
-
-header .tag{
-  font-size:12px;
-  color:var(--muted);
-}
-
-/* ---------- workspace ---------- */
-.workspace{
-  display:grid;
-  grid-template-columns: 290px 1fr;
-  min-height: calc(100vh - 56px);
-}
-
-/* ---------- rail ---------- */
-.rail{
-  border-right:1px solid var(--border);
-  background:#fbfcfd;
-  padding:14px;
-  display:flex;
-  flex-direction:column;
-  gap:14px;
-}
-
-.section{
-  border-top:1px solid var(--border);
-  padding-top:12px;
-}
-.section:first-child{
-  border-top:none;
-  padding-top:0;
-}
-
-.label{
-  font-size:11px;
-  letter-spacing:.08em;
-  text-transform:uppercase;
-  color:var(--muted);
-  margin-bottom:6px;
-}
-
-input{
-  width:100%;
-  padding:10px 12px;
-  border:1px solid var(--border);
-  background:#fff;
-  font-size:13px;
-  outline:none;
-}
-input:focus{ border-color:#8c959f; }
-
-button{
-  width:100%;
-  padding:10px 12px;
-  border:1px solid var(--accent);
-  background:var(--accent);
-  color:#fff;
-  font-weight:600;
-  cursor:pointer;
-}
-button.secondary{
-  background:#fff;
-  color:var(--accent);
-  border:1px solid var(--border);
-}
-button:disabled{ opacity:.5; cursor:not-allowed; }
-button + button{ margin-top:8px; }
-
-.status{
-  font-size:12px;
-  color:var(--muted);
-}
-
-.path{
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  font-size:12px;
-  background:var(--panel);
-  border:1px solid var(--border);
-  padding:8px;
-  overflow:hidden;
-  white-space:nowrap;
-  text-overflow:ellipsis;
-}
-
-/* ---------- canvas ---------- */
-.canvas-wrap{
-  padding:16px;
-  background:#fff;
-}
-
-.canvas-frame{
-  height: calc(100vh - 88px);
-  background: var(--canvas);
-  border:1px solid var(--border);
-  position:relative;
-  overflow:hidden;
-}
-
-.canvas-frame::before{
-  content:"";
-  position:absolute;
-  inset:0;
-  pointer-events:none;
-  z-index:0;
-  background:
-    linear-gradient(transparent 95%, #f1f3f5 95%),
-    linear-gradient(90deg, transparent 95%, #f1f3f5 95%);
-  background-size:80px 80px;
-}
-
-.canvas-frame > svg{
-  position:relative;
-  z-index:1;
-}
-
-/* ---------- tooltip ---------- */
-.tooltip{
-  position:fixed;
-  pointer-events:none;
-  background:rgba(27,31,36,.92);
-  color:#fff;
-  padding:6px 8px;
-  font-size:12px;
-  display:none;
-  z-index:9999;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-}
-
-/* =========================================================
-   RESPONSIVE — THIS IS THE IMPORTANT PART
-   ========================================================= */
-
-@media (max-width: 900px){
-
-  /* switch layout completely */
-  .workspace{
-    display:flex;
-    flex-direction:column;
-    min-height:auto;
-  }
-
-  /* rail becomes top bar */
-  .rail{
-    flex-direction:row;
-    flex-wrap:wrap;
-    border-right:none;
-    border-bottom:1px solid var(--border);
-    align-items:flex-start;
-    gap:12px;
-  }
-
-  .section{
-    border-top:none;
-    padding-top:0;
-    flex:1 1 240px;
-    min-width:240px;
-  }
-
-  .section:first-child{
-    flex:1 1 100%;
-    min-width:100%;
-  }
-
-  button{
-    width:auto;
-  }
-
-  button + button{
-    margin-top:0;
-  }
-
-  .canvas-wrap{
-    padding:10px;
-  }
-
-  .canvas-frame{
-    height:72vh;
-  }
-}
-
-@media (max-width: 520px){
-
-  .rail{
-    padding:10px;
-    gap:8px;
-  }
-
-  .section{
-    flex:1 1 100%;
-    min-width:100%;
-  }
-
-  .canvas-frame{
-    height:68vh;
-  }
-}
-</style>
-</head>
-
-<body>
-<div class="app">
-
-<header>
-  <h1>Git-Atlas</h1>
-  <div class="tag">Git repository structure visualizer</div>
-</header>
-
-<div class="workspace">
-
-  <aside class="rail">
-    <div class="section">
-      <div class="label">Repository</div>
-      <input id="repoUrl" value="https://github.com/git/git">
-      <button id="go">Visualize</button>
-    </div>
-
-    <div class="section">
-      <div class="label">Navigation</div>
-      <div id="path" class="path">repo</div>
-      <button id="back" class="secondary" disabled>Back</button>
-      <button id="root" class="secondary" disabled>Root</button>
-    </div>
-
-    <div class="section">
-      <div class="label">Export</div>
-      <button id="export" class="secondary">Export SVG</button>
-    </div>
-
-    <div class="section">
-      <div class="label">Status</div>
-      <div id="status" class="status">Idle</div>
-      <div id="message"></div>
-    </div>
-  </aside>
-
-  <main class="canvas-wrap">
-    <div id="viz" class="canvas-frame"></div>
-  </main>
-
-</div>
-</div>
-
-<div id="tooltip" class="tooltip"></div>
-
-<script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
-<script src="linguist-colors.js"></script>
-
-<script>
-const $ = s => document.querySelector(s);
-
-const viz=$("#viz"), tooltip=$("#tooltip");
-const statusEl=$("#status"), msgEl=$("#message"), pathEl=$("#path");
-const btn=$("#go"), backBtn=$("#back"), rootBtn=$("#root"), exportBtn=$("#export");
-
-let FULL_ROOT=null, CURRENT=null;
-
-function setStatus(t){statusEl.textContent=t;}
-function setMessage(t,e=false){msgEl.innerHTML=t?e?`<div class="err">${t}</div>`:t:"";}
-
-function parseGitHubUrl(url){
-  try{
-    const u=new URL(url);
-    const p=u.pathname.split("/").filter(Boolean);
-    return p.length>=2?{owner:p[0],repo:p[1].replace(/\.git$/,"")}:null;
-  }catch{return null;}
-}
-
-function extColor(ext){
-  const map=LINGUIST_COLORS.ext;
-  return map[ext]||"#9ca3af";
-}
-
-function treeListToHierarchy(list){
-  const root={name:"repo",type:"dir",children:[]};
-  const ensure=(p,n)=>p.children.find(c=>c.type==="dir"&&c.name===n)||(p.children.push({name:n,type:"dir",children:[]}),p.children.at(-1));
-  for(const it of list){
-    if(!it.path)continue;
-    const parts=it.path.split("/");
-    let node=root;
-    for(let i=0;i<parts.length;i++){
-      const last=i===parts.length-1;
-      if(!last) node=ensure(node,parts[i]);
-      else if(it.type==="blob"){
-        const name=parts[i];
-        node.children.push({name,type:"file",size:it.size||1,ext:name.split(".").pop().toLowerCase(),path:it.path});
-      }
-    }
-  }
-  return root;
-}
-
-async function gh(url){
-  const r=await fetch(url,{headers:{Accept:"application/vnd.github+json"}});
-  if(!r.ok) throw new Error(await r.text());
-  return r.json();
-}
-
-function pathOf(n){
-  const p=[];
-  while(n){if(n.parent)p.push(n.data.name);n=n.parent;}
-  return["repo"].concat(p.reverse());
-}
-
-function exportSVG() {
-      const svg = viz.querySelector("svg");
-      if (!svg) return;
-
-      const clone = svg.cloneNode(true);
-      clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
-
-      const serializer = new XMLSerializer();
-      const src = serializer.serializeToString(clone);
-      const blob = new Blob([src], { type: "image/svg+xml;charset=utf-8" });
-      const url = URL.createObjectURL(blob);
-
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "fileatlas.svg";
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
-    }
-    function navigateDir(fromNode, parts) {
-  let cur = fromNode;
-  for (const seg of parts) {
-    const next = cur.children?.find(
-      c => c.data.type === "dir" && c.data.name === seg
-    );
-    if (!next) return cur;
-    cur = next;
-  }
-  return cur;
-}
-
-
-    function render() {
-  viz.innerHTML = "";
-
-  const width = viz.clientWidth;
-  const height = viz.clientHeight;
-
-  pathEl.textContent = pathOf(CURRENT).join(" / ");
-  backBtn.disabled = !CURRENT.parent;
-  rootBtn.disabled = (CURRENT === FULL_ROOT);
-
-  const root = d3.hierarchy(CURRENT.data)
-    .sum(d => d.type === "file" ? d.size : 0)
-    .sort((a,b) => (b.value||0)-(a.value||0));
-
-  d3.pack().size([width,height]).padding(4)(root);
-
-  const svg = d3.select(viz).append("svg")
-    .attr("width","100%")
-    .attr("height","100%");
-
-  const nodes = svg.selectAll("g.node")
-    .data(root.descendants())
-    .join("g")
-    .attr("class","node")
-    .attr("transform", d => `translate(${d.x},${d.y})`)
-    .style("cursor", d =>
-      d.data.type==="dir" && d.depth>0 ? "pointer" : "default"
-    )
-    .on("click",(e,d)=>{
-      if (d.data.type === "dir" && d.depth > 0) {
-        const parts = d.ancestors()
-          .reverse()
-          .slice(1)
-          .map(a => a.data.name);
-        CURRENT = navigateDir(CURRENT, parts);
-        render();
-      }
-    })
-    .on("mousemove",(e,d)=>{
-      tooltip.style.display="block";
-      tooltip.textContent =
-        d.data.type==="file"
-          ? `${d.data.path} (${Math.round(d.value/1024)} KB)`
-          : d.data.name + "/";
-      tooltip.style.left = e.clientX + 12 + "px";
-      tooltip.style.top  = e.clientY + 12 + "px";
-    })
-    .on("mouseleave",()=>tooltip.style.display="none");
-
-  nodes.append("circle")
-    .attr("r", d => d.r)
-    .attr("fill", d => d.data.type==="dir" ? "#f3f4f6" : extColor(d.data.ext))
-    .attr("stroke","#e5e7eb");
-
-  svg.append("g")
-    .selectAll("text")
-    .data(root.descendants().filter(d => d.depth === 1 && d.r > 18))
-    .join("text")
-    .attr("x", d => d.x)
-    .attr("y", d => d.y)
-    .attr("text-anchor","middle")
-    .attr("dominant-baseline","middle")
-    .style("pointer-events","none")
-    .style("font-weight","700")
-    .style("fill", "#111827")
-    .style("paint-order","stroke")
-    .style("stroke","#ffffff")
-    .style("stroke-width","3px")
-    .style("font-size", d => {
-      const size = d.r * 0.35;
-      return Math.max(12, Math.min(26, size)) + "px";
-    })
-    .text(d =>
-      d.data.name.length > 18
-        ? d.data.name.slice(0,18) + "…"
-        : d.data.name
-    );
-}
-
-
-async function load(){
-  const parsed=parseGitHubUrl($("#repoUrl").value);
-  if(!parsed) return setMessage("Invalid GitHub URL",true);
-  btn.disabled=true; setStatus("Loading…");
-  try{
-    const repo=await gh(`https://api.github.com/repos/${parsed.owner}/${parsed.repo}`);
-    const branch=repo.default_branch;
-    const info=await gh(`https://api.github.com/repos/${parsed.owner}/${parsed.repo}/branches/${branch}`);
-    const sha=info.commit.commit.tree.sha;
-    const tree=await gh(`https://api.github.com/repos/${parsed.owner}/${parsed.repo}/git/trees/${sha}?recursive=1`);
-    FULL_ROOT=d3.hierarchy(treeListToHierarchy(tree.tree));
-    CURRENT=FULL_ROOT;
-    render(); setStatus("Loaded");
-  }catch(e){setMessage(e.message,true);setStatus("Error");}
-  finally{btn.disabled=false;}
-}
-
-btn.onclick=load;
-backBtn.onclick=()=>{if(CURRENT.parent){CURRENT=CURRENT.parent;render();}};
-rootBtn.onclick=()=>{CURRENT=FULL_ROOT;render();};
-exportBtn.onclick = exportSVG;
-
-
-load();
-</script>
-</body>
+<!DOCTYPE html>
+<html>
+	<head>
+	</head>
+	<body>
+		<div id="app">
+		<!-- floating example graphs (behind content) -->
+      		<div id="bg-graphs" aria-hidden="true">
+      		  	<!-- ✅ replace these filenames with your real ones -->
+      		  	<img class="graph g1" src="graphs/graph1.svg" alt="" />
+      		  	<img class="graph g2" src="graphs/graph2.svg" alt="" />
+      		  	<img class="graph g3" src="graphs/graph3.svg" alt="" />
+      		</div>
+
+
+		<header>
+  			<h1>Git-Atlas</h1>
+			<!--<div class="tag">Git repository structure visualizer</div>-->
+		</header>
+		<div class="centered">
+			<h1>Visualize any codebase</h1>
+			<h2>Interactive maps for understanding and documenting code.</h2>
+			<div id="links">
+				<a target="_blank" href="https://github.com/friedrich-eibl/git-atlas"><!--<img src="assets/GitHub_Invertocat_Black_Clearspace.svg" style="height: 1.5em"/>-->GitHub</a>
+				<a href="app.html">Try it now</a>
+			</div>
+		</div>
+		</div>
+	</body>
 </html>
 
+
+<style>
+	:root{
+  		--bg:#ffffff;
+		--fg:#24292f;
+ 		--muted:#57606a;
+ 		--border:#d0d7de;
+ 		--panel:#f6f8fa;
+ 		--canvas:#ffffff;
+ 		--accent:#24292f;
+	}
+	body{
+  		margin:0;
+  		font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+  		background: var(--bg);
+  		color: var(--fg);
+	}
+
+	#app {
+		position: relative;
+		z-index: 1;
+	}
+
+	h1 {
+		letter-spacing:.05em;
+		font-size: 3.75rem;
+	}
+	
+	a {
+		text-decoration: none;
+		color: var(--fg);
+	}
+	
+	.centered {
+		margin:auto;
+		margin-top:200px;
+		text-align: center;
+		max-width: 600px;
+	}
+
+	#links {
+		margin-top: 2.5em;
+	}
+	#links a {
+  		margin: 0 1em;
+  		border: 1px solid #555555;
+  		padding: 0.5em;
+
+  		display: inline;
+  		align-items: center;
+  		justify-content: center;
+	}
+	#links a:hover {
+		font-size: 1.1em;
+	}
+	
+
+	header{
+	  display:flex;
+	  justify-content:space-between;
+	  align-items:baseline;
+	  padding:14px 20px;
+	  border-bottom:1px solid var(--border);
+	  background:#fff;
+	}
+	
+	header h1{
+	  margin:0;
+	  font-size:16px;
+	  letter-spacing:.08em;
+	  text-transform:uppercase;
+	}
+	
+	header .tag{
+	  font-size:12px;
+	  color:var(--muted);
+	}
+
+	body::before{
+  		content:"";
+  		position:fixed;
+  		inset:0;
+  		pointer-events:none;
+  		z-index:0;
+
+  		background:
+  		  linear-gradient(
+  		    to bottom,
+  		    var(--bg) 0%,
+  		    rgba(255,255,255,0.9) 25%,
+  		    rgba(255,255,255,0.5) 65%,
+  		    rgba(255,255,255,0) 80%
+  		  ),
+  		  linear-gradient(#eef2f6 2px, transparent 2px),
+  		  linear-gradient(90deg, #eef2f6 2px, transparent 2px);
+
+  		background-size:
+  		  100% 100%,
+  		  48px 48px,
+  		  48px 48px;
+	}
+
+
+/* -------- floating graphs layer -------- */
+  #bg-graphs{
+    position: fixed;
+    inset: 0;
+    z-index: 0;              /* behind your header/hero */
+    pointer-events: none;    /* never blocks clicks */
+    overflow: hidden;
+  }
+
+  .graph{
+    position: absolute;
+    width: min(420px, 46vw);
+    height: auto;
+
+    /* subtle "example preview" look */
+    opacity: 0.22;
+    filter: grayscale(1) contrast(1.05);
+    border: 1px solid rgba(36,41,47,0.12);
+    background: rgba(255,255,255,0.55);
+    border-radius: 12px;
+
+    /* if your images have transparent bg, this helps */
+    padding: 10px;
+
+    /* soft depth without looking cartoonish */
+    box-shadow: 0 10px 30px rgba(0,0,0,0.06);
+
+    transform: translate3d(0,0,0);
+  }
+
+  /* positions around edges */
+  .g1{ top: 90px; left: -50px;  animation: floatA 16s ease-in-out infinite; }
+  .g2{ bottom: 50%; right: 95px; animation: floatB 18s ease-in-out infinite; }
+  .g3{ top: 80%; left: 40%; transform: translate(-50%,-50%); animation: floatC 20s ease-in-out infinite; }
+
+  /* gentle movement */
+  @keyframes floatA{
+    0%,100%{ transform: translate(0,0) rotate(-2deg); }
+    50%    { transform: translate(36px,28px) rotate(1deg); }
+  }
+  @keyframes floatB{
+    0%,100%{ transform: translate(0,0) rotate(2deg); }
+    50%    { transform: translate(-32px,-20px) rotate(-1deg); }
+  }
+  @keyframes floatC{
+    0%,100%{ transform: translate(-50%,-50%) rotate(0deg); }
+    50%    { transform: translate(-46%,-52%) rotate(1.5deg); }
+  }
+
+  /* mobile: hide or reduce floating examples */
+  @media (max-width: 700px){
+    .graph{ opacity: 0.14; width: 70vw; }
+    .g3{ display:none; }
+    .g1{ left: -140px; top: 120px; }
+    .g2{ right: -160px; bottom: 80px; }
+    .centered{ margin-top: 120px; padding: 0 18px; }
+    h1{ font-size: 2.6rem; }
+  }
+</style>
