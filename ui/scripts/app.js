@@ -9,6 +9,7 @@ const btn = $("#go"),
 	backBtn = $("#back"),
 	rootBtn = $("#root"),
 	exportBtn = $("#export"),
+	exportPNGBtn = $("#exportPNG"),
 	localBtn = $("#local");
 
 let FULL_ROOT = null,
@@ -118,5 +119,6 @@ rootBtn.onclick = () => {
 	updateEditor();
 };
 exportBtn.onclick = exportSVG;
+exportPNGBtn.onclick = exportPNG;
 localBtn.onclick = loadLocal;
 
